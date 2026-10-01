@@ -6,11 +6,12 @@ import {
   MemberAuth,
   VerificationStatus,
 } from '../../enums/member.enum';
+import { AntiqueCategory } from '../../enums/antique.enum';
 
 @ObjectType()
 export class ExpertProfile {
-  //   @Field(() => [AntiqueCategory])
-  //   specialties: AntiqueCategory[];
+  @Field(() => [AntiqueCategory])
+  specialties: AntiqueCategory[];
 
   @Field(() => String)
   credentialsDesc: string;

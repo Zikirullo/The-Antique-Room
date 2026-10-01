@@ -5,14 +5,15 @@ import {
   MemberType,
   VerificationStatus,
 } from '../libs/enums/member.enum';
+import { AntiqueCategory } from '../libs/enums/antique.enum';
 
 const ExpertProfileSchema = new Schema(
   {
-    // specialties: {
-    //   type: [String],
-    //   enum: AntiqueCategory,
-    //   required: true,
-    // },
+    specialties: {
+      type: [String],
+      enum: AntiqueCategory,
+      required: true,
+    },
 
     credentialsDesc: {
       type: String,

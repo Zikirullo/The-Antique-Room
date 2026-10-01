@@ -12,13 +12,14 @@ import {
 import { MemberAuth, MemberStatus, MemberType } from '../../enums/member.enum';
 import { availableMemberSorts } from '../../config';
 import { Direction } from '../../enums/common.enum';
+import { AntiqueCategory } from '../../enums/antique.enum';
 
 @InputType()
 export class ExpertSignupInput {
-  //   @IsArray()
-  //   @IsEnum(AntiqueCategory, { each: true })
-  //   @Field(() => [AntiqueCategory])
-  //   specialties: AntiqueCategory[];
+  @IsArray()
+  @IsEnum(AntiqueCategory, { each: true })
+  @Field(() => [AntiqueCategory])
+  specialties: AntiqueCategory[];
 
   @IsNotEmpty()
   @Field(() => String)
@@ -117,9 +118,9 @@ class MISearch {
   @Field(() => MemberType, { nullable: true })
   memberType?: MemberType;
 
-  //   @IsOptional()
-  //   @Field(() => AntiqueCategory, { nullable: true })
-  //   specialty?: AntiqueCategory;
+  @IsOptional()
+  @Field(() => AntiqueCategory, { nullable: true })
+  specialty?: AntiqueCategory;
 
   @IsOptional()
   @Field(() => String, { nullable: true })
