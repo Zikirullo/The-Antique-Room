@@ -51,12 +51,12 @@ export class MemberInput {
   @IsNotEmpty()
   @Length(5, 12)
   @Field(() => String, { nullable: true })
-  memberPassword?: string;
+  memberPassword: string;
 
   @ValidateIf((o) => o.memberAuth === MemberAuth.PHONE)
   @IsNotEmpty()
   @Field(() => String, { nullable: true })
-  memberPhone?: string;
+  memberPhone: string;
 
   @IsOptional()
   @Field(() => String, { nullable: true })

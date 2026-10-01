@@ -56,7 +56,7 @@ export class Member {
   memberPhone?: string;
 
   @Field(() => String, { nullable: true })
-  memberPassword?: string;
+  memberPassword: string;
 
   @Field(() => String, { nullable: true })
   appleId?: string;
@@ -117,4 +117,7 @@ export class Member {
 
   @Field(() => Date, { nullable: true })
   deletedAt?: Date;
+
+  @Field(() => String, { nullable: true })
+  accessToken?: string;
 }

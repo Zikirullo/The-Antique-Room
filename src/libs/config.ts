@@ -1,3 +1,5 @@
+import { ObjectId } from 'bson';
+
 export const availableMemberSorts = [
   'createdAt',
   'updatedAt',
@@ -23,3 +25,7 @@ export const availableAntiqueSorts = [
   'antiqueComments',
   'reviewRating',
 ];
+
+export const shapeIntoMongoObjectId = (target: any) => {
+  return typeof target === 'string' ? new ObjectId(target) : target;
+};

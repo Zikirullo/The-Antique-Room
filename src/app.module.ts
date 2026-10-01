@@ -7,6 +7,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver } from '@nestjs/apollo';
 import { T } from './libs/types/common';
 import { ComponentsModule } from './components/components.module';
+import { AppResolver } from './app.resolver';
 
 @Module({
   imports: [
@@ -35,6 +36,6 @@ import { ComponentsModule } from './components/components.module';
     ComponentsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, AppResolver],
 })
 export class AppModule {}
