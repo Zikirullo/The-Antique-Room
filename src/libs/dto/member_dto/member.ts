@@ -55,6 +55,9 @@ export class Member {
   memberPhone?: string;
 
   @Field(() => String, { nullable: true })
+  memberPassword?: string;
+
+  @Field(() => String, { nullable: true })
   appleId?: string;
 
   @Field(() => String, { nullable: true })

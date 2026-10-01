@@ -73,6 +73,11 @@ const MemberSchema = new Schema(
       sparse: true,
     },
 
+    memberPassword: {
+      type: String,
+      select: false,
+    },
+
     memberEmail: {
       type: String,
       unique: true,

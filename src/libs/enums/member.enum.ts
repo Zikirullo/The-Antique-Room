@@ -42,11 +42,3 @@ export enum VerificationStatus {
 registerEnumType(VerificationStatus, {
   name: 'VerificationStatus',
 });
-
-//   FURNITURE,
-//   ART,
-//   CERAMICS_PORCELAIN,
-//   JEWELLERY_SILVERWARE,
-//   BOOKS_MAPS_DOCUMENTS,
-//   CLOCKS_TIMEPIECES,
-//   COINS_CURRENCY_STAMPS,
