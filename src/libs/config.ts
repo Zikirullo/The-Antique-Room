@@ -13,3 +13,13 @@ export const availableExpertSorts = [
   'memberRank',
   'yearsOfExperience',
 ];
+
+export const availableAntiqueSorts = [
+  'createdAt',
+  'updatedAt',
+  'antiquePrice',
+  'antiqueViews',
+  'antiqueLikes',
+  'antiqueComments',
+  'reviewRating',
+];
