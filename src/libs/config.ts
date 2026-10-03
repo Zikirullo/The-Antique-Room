@@ -26,6 +26,22 @@ export const availableAntiqueSorts = [
   'reviewRating',
 ];
 
+export const availablePostSorts = [
+  'createdAt',
+  'updatedAt',
+  'postLikes',
+  'postViews',
+  'postComments',
+];
+
+export const availableCommentSorts = ['createdAt', 'updatedAt'];
+
+export const availableNoticeSorts = ['createdAt', 'updatedAt', 'noticeTitle'];
+
+export const availableReportSorts = ['createdAt', 'updatedAt', 'resolvedAt'];
+
+export const availableGradingSorts = ['createdAt', 'updatedAt', 'completedAt'];
+
 export const shapeIntoMongoObjectId = (target: any) => {
   return typeof target === 'string' ? new ObjectId(target) : target;
 };
