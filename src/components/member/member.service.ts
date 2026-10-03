@@ -3,10 +3,11 @@ import {
   ForbiddenException,
   HttpException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, type ObjectId } from 'mongoose';
 import { Member } from '../../libs/dto/member_dto/member';
 import { AuthService } from '../auth/auth.service';
 import { AuthenticationInput } from '../../libs/dto/member_dto/member.input';
@@ -17,6 +18,7 @@ import {
   MemberType,
 } from '../../libs/enums/member.enum';
 import { AuthPayload } from '../../libs/dto/auth.payload';
+import { StatisticModifier, T } from '../../libs/types/common';
 
 // Member types a user may choose for themselves at signup
 const SELF_ASSIGNABLE_TYPES = [
@@ -117,6 +119,35 @@ export class MemberService {
       console.error('AUTHENTICATE ERROR:', err);
       throw new BadRequestException(Message.SOMETHING_WENT_WRONG);
     }
+  }
+
+  // ---------- MEMBER ----------
+
+  public async getMember(
+    _memberId: ObjectId | null,
+    targetId: ObjectId,
+  ): Promise<Member> {
+    const search: T = {
+      _id: targetId,
+      memberStatus: { $in: [MemberStatus.ACTIVE, MemberStatus.BLOCKED] },
+    };
+    const targetMember = await this.memberModel.findOne(search).lean().exec();
+    if (!targetMember) {
+      throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+    }
+    return targetMember as Member;
+  }
+
+  /** Increments / decrements a counter field, e.g. memberAntiques +1 */
+  public async memberStatsEditor(input: StatisticModifier): Promise<Member> {
+    const { _id, targetKey, modifier } = input;
+    return (await this.memberModel
+      .findByIdAndUpdate(
+        _id,
+        { $inc: { [targetKey]: modifier } },
+        { returnDocument: 'after' },
+      )
+      .exec()) as Member;
   }
 
   // ---------- PHONE ----------

@@ -10,6 +10,9 @@ import {
   ClockMovementType,
   ClockWorkingStatus,
 } from '../../enums/antique.enum';
+import { Member } from '../member_dto/member';
+import { MeLiked } from '../like_dto/like';
+import { TotalCounter } from '../common';
 
 @ObjectType()
 export class FurnitureDetails {
@@ -186,4 +189,21 @@ export class Antique {
 
   @Field(() => Date)
   updatedAt: Date;
+
+  /** from aggregation **/
+
+  @Field(() => [MeLiked], { nullable: true })
+  meLiked?: MeLiked[];
+
+  @Field(() => Member, { nullable: true })
+  memberData?: Member;
+}
+
+@ObjectType()
+export class Antiques {
+  @Field(() => [Antique])
+  list: Antique[];
+
+  @Field(() => [TotalCounter], { nullable: true })
+  metaCounter: TotalCounter[];
 }

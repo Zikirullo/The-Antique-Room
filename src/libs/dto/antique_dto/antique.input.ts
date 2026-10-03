@@ -13,6 +13,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import type { ObjectId } from 'mongoose';
 import {
   AntiqueCategory,
   AntiqueCondition,
@@ -162,6 +163,9 @@ export class AntiqueInput {
   @Type(() => CoinsCurrenciesStampsDetailsInput)
   @Field(() => CoinsCurrenciesStampsDetailsInput, { nullable: true })
   coinsCurrenciesStampsDetails?: CoinsCurrenciesStampsDetailsInput;
+
+  // Set from the authenticated member
+  memberId?: ObjectId;
 }
 
 @InputType()
