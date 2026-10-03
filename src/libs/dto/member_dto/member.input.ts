@@ -35,28 +35,25 @@ export class ExpertSignupInput {
   @Field(() => Int, { nullable: true })
   yearsOfExperience?: number;
 }
-
 @InputType()
-export class MemberInput {
-  @IsNotEmpty()
-  @Length(3, 12)
-  @Field(() => String)
-  memberNick: string;
-
+export class AuthenticationInput {
   @IsNotEmpty()
   @Field(() => MemberAuth)
   memberAuth: MemberAuth;
 
-  @ValidateIf((o) => o.memberAuth === MemberAuth.PHONE)
-  @IsNotEmpty()
+  @IsOptional()
+  @Length(3, 12)
+  @Field(() => String, { nullable: true })
+  memberNick?: string;
+
+  @IsOptional()
+  @Field(() => String, { nullable: true })
+  memberPhone?: string;
+
+  @IsOptional()
   @Length(5, 12)
   @Field(() => String, { nullable: true })
-  memberPassword: string;
-
-  @ValidateIf((o) => o.memberAuth === MemberAuth.PHONE)
-  @IsNotEmpty()
-  @Field(() => String, { nullable: true })
-  memberPhone: string;
+  memberPassword?: string;
 
   @IsOptional()
   @Field(() => String, { nullable: true })
@@ -64,15 +61,7 @@ export class MemberInput {
 
   @IsOptional()
   @Field(() => String, { nullable: true })
-  googleId?: string;
-
-  @IsOptional()
-  @Field(() => String, { nullable: true })
-  appleId?: string;
-
-  @IsOptional()
-  @Field(() => String, { nullable: true })
-  telegramId?: string;
+  token?: string;
 
   @IsOptional()
   @Field(() => MemberType, { nullable: true })
@@ -82,30 +71,6 @@ export class MemberInput {
   @IsNotEmpty()
   @Field(() => ExpertSignupInput, { nullable: true })
   expertProfile?: ExpertSignupInput;
-}
-
-@InputType()
-export class LoginInput {
-  @IsNotEmpty()
-  @Length(3, 12)
-  @Field(() => String)
-  memberNick: string;
-
-  @IsNotEmpty()
-  @Length(5, 12)
-  @Field(() => String)
-  memberPassword: string;
-}
-
-@InputType()
-export class SocialLoginInput {
-  @IsNotEmpty()
-  @Field(() => MemberAuth)
-  memberAuth: MemberAuth;
-
-  @IsNotEmpty()
-  @Field(() => String)
-  token: string;
 }
 
 @InputType()

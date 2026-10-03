@@ -1,0 +1,587 @@
+{
+  "info": {
+    "name": "The Antique Room – Authenticate",
+    "description": "Tests the `authenticate` mutation: login if the member exists, signup if not.\n\nRun the Phone folder in order (Signup -> Login -> Wrong password).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Phone",
+      "item": [
+        {
+          "name": "Signup (new phone)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Fresh phone + nick for every run, so this always tests SIGNUP",
+                  "const n = Date.now().toString().slice(-8);",
+                  "pm.collectionVariables.set('phone', '010' + n);",
+                  "pm.collectionVariables.set('nick', 'zik' + n.slice(-6));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('No GraphQL errors', () => pm.expect(res.errors, JSON.stringify(res.errors)).to.be.undefined);",
+                  "pm.test('Returns access token', () => pm.expect(res.data.authenticate.accessToken).to.be.a('string'));",
+                  "pm.test('Password is never returned', () => pm.expect(res.data.authenticate.member).to.not.have.property('memberPassword'));",
+                  "pm.collectionVariables.set('accessToken', res.data.authenticate.accessToken);",
+                  "pm.collectionVariables.set('memberId', res.data.authenticate.member._id);",
+                  "pm.test('Signed up with PHONE', () => pm.expect(res.data.authenticate.member.memberAuth).to.eql('PHONE'));",
+                  "pm.collectionVariables.set('firstMemberId', res.data.authenticate.member._id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Authenticate($input: AuthenticationInput!) {\n  authenticate(input: $input) {\n    accessToken\n    member {\n      _id\n      memberNick\n      memberType\n      memberAuth\n      memberStatus\n      memberPhone\n      memberEmail\n      memberImage\n      googleId\n      appleId\n      telegramId\n      expertProfile { specialties credentialsDesc yearsOfExperience verificationStatus }\n      createdAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"memberAuth\": \"PHONE\",\n    \"memberPhone\": \"{{phone}}\",\n    \"memberPassword\": \"{{password}}\",\n    \"memberNick\": \"{{nick}}\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ]
+            },
+            "description": "New phone number -> creates a member and returns a token."
+          }
+        },
+        {
+          "name": "Login (same phone)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('No GraphQL errors', () => pm.expect(res.errors, JSON.stringify(res.errors)).to.be.undefined);",
+                  "pm.test('Returns access token', () => pm.expect(res.data.authenticate.accessToken).to.be.a('string'));",
+                  "pm.test('Password is never returned', () => pm.expect(res.data.authenticate.member).to.not.have.property('memberPassword'));",
+                  "pm.collectionVariables.set('accessToken', res.data.authenticate.accessToken);",
+                  "pm.collectionVariables.set('memberId', res.data.authenticate.member._id);",
+                  "pm.test('Same member as signup (login, not a new account)', () => pm.expect(res.data.authenticate.member._id).to.eql(pm.collectionVariables.get('firstMemberId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Authenticate($input: AuthenticationInput!) {\n  authenticate(input: $input) {\n    accessToken\n    member {\n      _id\n      memberNick\n      memberType\n      memberAuth\n      memberStatus\n      memberPhone\n      memberEmail\n      memberImage\n      googleId\n      appleId\n      telegramId\n      expertProfile { specialties credentialsDesc yearsOfExperience verificationStatus }\n      createdAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"memberAuth\": \"PHONE\",\n    \"memberPhone\": \"{{phone}}\",\n    \"memberPassword\": \"{{password}}\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ]
+            },
+            "description": "Same phone again -> logs in the existing member. Run 'Signup' first."
+          }
+        },
+        {
+          "name": "Wrong password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('Returns an error', () => pm.expect(res.errors).to.be.an('array'));",
+                  "pm.test('Error says: Wrong password', () => pm.expect(res.errors[0].message).to.include('Wrong password'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Authenticate($input: AuthenticationInput!) {\n  authenticate(input: $input) {\n    accessToken\n    member {\n      _id\n      memberNick\n      memberType\n      memberAuth\n      memberStatus\n      memberPhone\n      memberEmail\n      memberImage\n      googleId\n      appleId\n      telegramId\n      expertProfile { specialties credentialsDesc yearsOfExperience verificationStatus }\n      createdAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"memberAuth\": \"PHONE\",\n    \"memberPhone\": \"{{phone}}\",\n    \"memberPassword\": \"wrong123\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ]
+            },
+            "description": "Should fail with 'Wrong password, try again!'"
+          }
+        },
+        {
+          "name": "Signup without nickname",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('Returns an error', () => pm.expect(res.errors).to.be.an('array'));",
+                  "pm.test('Error says: nickname is required', () => pm.expect(res.errors[0].message).to.include('nickname is required'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Authenticate($input: AuthenticationInput!) {\n  authenticate(input: $input) {\n    accessToken\n    member {\n      _id\n      memberNick\n      memberType\n      memberAuth\n      memberStatus\n      memberPhone\n      memberEmail\n      memberImage\n      googleId\n      appleId\n      telegramId\n      expertProfile { specialties credentialsDesc yearsOfExperience verificationStatus }\n      createdAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"memberAuth\": \"PHONE\",\n    \"memberPhone\": \"0109999{{$randomInt}}\",\n    \"memberPassword\": \"{{password}}\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ]
+            },
+            "description": "Unknown phone and no memberNick -> should fail."
+          }
+        },
+        {
+          "name": "Signup as ADMIN (blocked)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('Returns an error', () => pm.expect(res.errors).to.be.an('array'));",
+                  "pm.test('Error says: Not Allowed', () => pm.expect(res.errors[0].message).to.include('Not Allowed'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Authenticate($input: AuthenticationInput!) {\n  authenticate(input: $input) {\n    accessToken\n    member {\n      _id\n      memberNick\n      memberType\n      memberAuth\n      memberStatus\n      memberPhone\n      memberEmail\n      memberImage\n      googleId\n      appleId\n      telegramId\n      expertProfile { specialties credentialsDesc yearsOfExperience verificationStatus }\n      createdAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"memberAuth\": \"PHONE\",\n    \"memberPhone\": \"0108888{{$randomInt}}\",\n    \"memberPassword\": \"{{password}}\",\n    \"memberNick\": \"boss{{$randomInt}}\",\n    \"memberType\": \"ADMIN\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ]
+            },
+            "description": "Self-assigning ADMIN must be rejected."
+          }
+        },
+        {
+          "name": "Signup as GRADING_EXPERT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('No GraphQL errors', () => pm.expect(res.errors, JSON.stringify(res.errors)).to.be.undefined);",
+                  "pm.test('Returns access token', () => pm.expect(res.data.authenticate.accessToken).to.be.a('string'));",
+                  "pm.test('Password is never returned', () => pm.expect(res.data.authenticate.member).to.not.have.property('memberPassword'));",
+                  "pm.collectionVariables.set('accessToken', res.data.authenticate.accessToken);",
+                  "pm.collectionVariables.set('memberId', res.data.authenticate.member._id);",
+                  "pm.test('Expert profile saved as PENDING', () => pm.expect(res.data.authenticate.member.expertProfile.verificationStatus).to.eql('PENDING'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Authenticate($input: AuthenticationInput!) {\n  authenticate(input: $input) {\n    accessToken\n    member {\n      _id\n      memberNick\n      memberType\n      memberAuth\n      memberStatus\n      memberPhone\n      memberEmail\n      memberImage\n      googleId\n      appleId\n      telegramId\n      expertProfile { specialties credentialsDesc yearsOfExperience verificationStatus }\n      createdAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"memberAuth\": \"PHONE\",\n    \"memberPhone\": \"0107777{{$randomInt}}\",\n    \"memberPassword\": \"{{password}}\",\n    \"memberNick\": \"exp{{$randomInt}}\",\n    \"memberType\": \"GRADING_EXPERT\",\n    \"expertProfile\": {\n      \"specialties\": [\n        \"COINS_CURRENCY_STAMPS\",\n        \"CLOCKS_TIMEPIECES\"\n      ],\n      \"credentialsDesc\": \"10 years appraising coins\",\n      \"yearsOfExperience\": 10\n    }\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ]
+            },
+            "description": "Expert signup saves expertProfile with verificationStatus PENDING."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Google",
+      "item": [
+        {
+          "name": "Authenticate with Google",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('No GraphQL errors', () => pm.expect(res.errors, JSON.stringify(res.errors)).to.be.undefined);",
+                  "pm.test('Returns access token', () => pm.expect(res.data.authenticate.accessToken).to.be.a('string'));",
+                  "pm.test('Password is never returned', () => pm.expect(res.data.authenticate.member).to.not.have.property('memberPassword'));",
+                  "pm.collectionVariables.set('accessToken', res.data.authenticate.accessToken);",
+                  "pm.collectionVariables.set('memberId', res.data.authenticate.member._id);",
+                  "pm.test('Has googleId', () => pm.expect(res.data.authenticate.member.googleId).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Authenticate($input: AuthenticationInput!) {\n  authenticate(input: $input) {\n    accessToken\n    member {\n      _id\n      memberNick\n      memberType\n      memberAuth\n      memberStatus\n      memberPhone\n      memberEmail\n      memberImage\n      googleId\n      appleId\n      telegramId\n      expertProfile { specialties credentialsDesc yearsOfExperience verificationStatus }\n      createdAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"memberAuth\": \"GOOGLE\",\n    \"token\": \"{{googleIdToken}}\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ]
+            },
+            "description": "Set the googleIdToken variable first: open index.html in the project, sign in, copy the token from the browser console. Tokens expire after ~1 hour. 1st call = signup, 2nd call = login (same _id)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Apple",
+      "item": [
+        {
+          "name": "Authenticate with Apple",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('No GraphQL errors', () => pm.expect(res.errors, JSON.stringify(res.errors)).to.be.undefined);",
+                  "pm.test('Returns access token', () => pm.expect(res.data.authenticate.accessToken).to.be.a('string'));",
+                  "pm.test('Password is never returned', () => pm.expect(res.data.authenticate.member).to.not.have.property('memberPassword'));",
+                  "pm.collectionVariables.set('accessToken', res.data.authenticate.accessToken);",
+                  "pm.collectionVariables.set('memberId', res.data.authenticate.member._id);",
+                  "pm.test('Has appleId', () => pm.expect(res.data.authenticate.member.appleId).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Authenticate($input: AuthenticationInput!) {\n  authenticate(input: $input) {\n    accessToken\n    member {\n      _id\n      memberNick\n      memberType\n      memberAuth\n      memberStatus\n      memberPhone\n      memberEmail\n      memberImage\n      googleId\n      appleId\n      telegramId\n      expertProfile { specialties credentialsDesc yearsOfExperience verificationStatus }\n      createdAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"memberAuth\": \"APPLE\",\n    \"token\": \"{{appleIdToken}}\",\n    \"memberNick\": \"apple{{$randomInt}}\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ]
+            },
+            "description": "Needs a real Apple identity token (from Sign in with Apple on iOS or web). Its audience must be listed in APPLE_CLIENT_ID. memberNick is used only on first signup."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Telegram",
+      "item": [
+        {
+          "name": "Authenticate with Telegram",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('No GraphQL errors', () => pm.expect(res.errors, JSON.stringify(res.errors)).to.be.undefined);",
+                  "pm.test('Returns access token', () => pm.expect(res.data.authenticate.accessToken).to.be.a('string'));",
+                  "pm.test('Password is never returned', () => pm.expect(res.data.authenticate.member).to.not.have.property('memberPassword'));",
+                  "pm.collectionVariables.set('accessToken', res.data.authenticate.accessToken);",
+                  "pm.collectionVariables.set('memberId', res.data.authenticate.member._id);",
+                  "pm.test('Has telegramId', () => pm.expect(res.data.authenticate.member.telegramId).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Authenticate($input: AuthenticationInput!) {\n  authenticate(input: $input) {\n    accessToken\n    member {\n      _id\n      memberNick\n      memberType\n      memberAuth\n      memberStatus\n      memberPhone\n      memberEmail\n      memberImage\n      googleId\n      appleId\n      telegramId\n      expertProfile { specialties credentialsDesc yearsOfExperience verificationStatus }\n      createdAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"memberAuth\": \"TELEGRAM\",\n    \"token\": \"{{telegramAuthData}}\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ]
+            },
+            "description": "Set telegramAuthData by running: node postman/telegram-test-data.js  (signs test data with TELEGRAM_BOT_TOKEN from .env). Valid for 24h."
+          }
+        },
+        {
+          "name": "Telegram tampered data (rejected)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('Returns an error', () => pm.expect(res.errors).to.be.an('array'));",
+                  "pm.test('Error says: Telegram', () => pm.expect(res.errors[0].message).to.include('Telegram'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Authenticate($input: AuthenticationInput!) {\n  authenticate(input: $input) {\n    accessToken\n    member {\n      _id\n      memberNick\n      memberType\n      memberAuth\n      memberStatus\n      memberPhone\n      memberEmail\n      memberImage\n      googleId\n      appleId\n      telegramId\n      expertProfile { specialties credentialsDesc yearsOfExperience verificationStatus }\n      createdAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"memberAuth\": \"TELEGRAM\",\n    \"token\": \"id=1&first_name=Hacker&auth_date=1700000000&hash=deadbeef\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ]
+            },
+            "description": "Fake hash -> must be rejected."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Errors",
+      "item": [
+        {
+          "name": "Missing token (Google)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('Returns an error', () => pm.expect(res.errors).to.be.an('array'));",
+                  "pm.test('Error says: token is required', () => pm.expect(res.errors[0].message).to.include('token is required'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Authenticate($input: AuthenticationInput!) {\n  authenticate(input: $input) {\n    accessToken\n    member {\n      _id\n      memberNick\n      memberType\n      memberAuth\n      memberStatus\n      memberPhone\n      memberEmail\n      memberImage\n      googleId\n      appleId\n      telegramId\n      expertProfile { specialties credentialsDesc yearsOfExperience verificationStatus }\n      createdAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"memberAuth\": \"GOOGLE\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ]
+            },
+            "description": "No token -> error."
+          }
+        },
+        {
+          "name": "Invalid Google token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "pm.test('Returns an error', () => pm.expect(res.errors).to.be.an('array'));",
+                  "pm.test('Error says: ', () => pm.expect(res.errors[0].message).to.include(''));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Authenticate($input: AuthenticationInput!) {\n  authenticate(input: $input) {\n    accessToken\n    member {\n      _id\n      memberNick\n      memberType\n      memberAuth\n      memberStatus\n      memberPhone\n      memberEmail\n      memberImage\n      googleId\n      appleId\n      telegramId\n      expertProfile { specialties credentialsDesc yearsOfExperience verificationStatus }\n      createdAt\n    }\n  }\n}",
+                "variables": "{\n  \"input\": {\n    \"memberAuth\": \"GOOGLE\",\n    \"token\": \"not-a-real-token\"\n  }\n}"
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}",
+              "host": [
+                "{{baseUrl}}"
+              ]
+            },
+            "description": "Garbage token -> error."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3003/graphql"
+    },
+    {
+      "key": "phone",
+      "value": ""
+    },
+    {
+      "key": "nick",
+      "value": ""
+    },
+    {
+      "key": "password",
+      "value": "secret123"
+    },
+    {
+      "key": "googleIdToken",
+      "value": ""
+    },
+    {
+      "key": "appleIdToken",
+      "value": ""
+    },
+    {
+      "key": "telegramAuthData",
+      "value": ""
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "memberId",
+      "value": ""
+    },
+    {
+      "key": "firstMemberId",
+      "value": ""
+    }
+  ]
+}
